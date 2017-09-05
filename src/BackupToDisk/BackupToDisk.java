@@ -141,8 +141,9 @@ public class BackupToDisk
 		String diskDataSourceInfofile = target + "/num-" + disknum + "-diskDataSourceInfo.txt";
 		if (Input_length == 0) {
 			for (File pathname : new File(source).listFiles()) {
+				String dir_name = pathname.getName(); // 目录名
 				// 判断硬盘空间是否满足备份
-				String FSize = folderSize(source);
+				String FSize = folderSize(source+"/"+dir_name);
 				String diskResidualSpaceSize = diskResidualSpaceSize(target);
 				if (FSize.equals("0")) {
 					System.out.println(FSize+"G");
@@ -150,11 +151,10 @@ public class BackupToDisk
 				} else {
 					double foldersize = changeToGB(FSize);
 					double disksize = changeToGB(diskResidualSpaceSize);
-					//System.out.println(foldersize+"G");
-					//System.out.println(disksize+"G");
+					System.out.println(foldersize+"G");
+					System.out.println(disksize+"G");
 					if (foldersize < disksize) {
 						//System.out.println("可备份");
-						String dir_name = pathname.getName(); // 目录名
 						ArrayList<String> BackupOver_file_list = readBackupOver(backupOver);
 						if (!BackupOver_file_list.contains(dir_name)) {
 							int re = backupFile(Input_length, pathname, target);
@@ -174,8 +174,8 @@ public class BackupToDisk
 								backupOver(backupOver, dir_name); // 已备份列表
 								diskDataSourceInfo(diskDataSourceInfofile, Folder+"/"+dir_name, disknum); //该硬盘数据源信息
 								allDiskDatabackupInfo(allDiskDatabackupInfo, Folder+"/"+dir_name, disknum); //备份文件总信息
-								//cpSampleInfoTxt(Folder+"/"+dir_name, target+"/"+dir_name); //备份文件改名信息文件
-								rsyncFile (Folder+"/"+dir_name+"/"+dir_name+".SampleInfo.txt", target+"/"+dir_name);//备份文件改名信息文件
+								cpSampleInfoTxt(Folder+"/"+dir_name, target+"/"+dir_name); //备份文件改名信息文件
+								//rsyncFile (Folder+"/"+dir_name+"/"+dir_name+".SampleInfo.txt", target+"/"+dir_name);//备份文件改名信息文件
 								emailData = Folder+"/"+dir_name+"已完成备份！";
 								mailTopic = "备份完成";
 								try {
@@ -250,8 +250,8 @@ public class BackupToDisk
 							backupOver(backupOver, dir_name); // 已备份列表
 							diskDataSourceInfo(diskDataSourceInfofile, Folder+"/"+dir_name, disknum); //该硬盘数据源信息
 							allDiskDatabackupInfo(allDiskDatabackupInfo, Folder+"/"+dir_name, disknum); //备份文件总信息
-							//cpSampleInfoTxt(Folder+"/"+dir_name, target+"/"+dir_name); //备份文件改名信息文件
-							rsyncFile (Folder+"/"+dir_name+"/"+dir_name+".SampleInfo.txt", target+"/"+dir_name);//备份文件改名信息文件
+							cpSampleInfoTxt(Folder+"/"+dir_name, target+"/"+dir_name); //备份文件改名信息文件
+							//rsyncFile (Folder+"/"+dir_name+"/"+dir_name+".SampleInfo.txt", target+"/"+dir_name);//备份文件改名信息文件
 							emailData = Folder+"/"+dir_name+"已完成备份！";
 							mailTopic = "备份完成";
 							try {
@@ -315,8 +315,8 @@ public class BackupToDisk
 							backupOver(backupOver, dir_name); // 已备份列表
 							diskDataSourceInfo(diskDataSourceInfofile, Folder+"/"+dir_name, disknum); //该硬盘数据源信息
 							allDiskDatabackupInfo(allDiskDatabackupInfo, Folder+"/"+dir_name, disknum); //备份文件总信息
-							//cpSampleInfoTxt(Folder+"/"+dir_name, target+"/"+dir_name); //备份文件改名信息文件
-							rsyncFile (Folder+"/"+dir_name+"/"+dir_name+".SampleInfo.txt", target+"/"+dir_name);//备份文件改名信息文件
+							cpSampleInfoTxt(Folder+"/"+dir_name, target+"/"+dir_name); //备份文件改名信息文件
+							//rsyncFile (Folder+"/"+dir_name+"/"+dir_name+".SampleInfo.txt", target+"/"+dir_name);//备份文件改名信息文件
 							emailData = Folder+"/"+dir_name+"已完成备份！";
 							mailTopic = "备份完成";
 							try {
@@ -364,13 +364,15 @@ public class BackupToDisk
 	
 	// 备份文件改名信息文件
 	public static void cpSampleInfoTxt(String source, String target){
-		String cmd = "cp " + source + "/*.SampleInfo.txt " + target;
+		//String cmd = "cp " + source + "/*.txt " + target;
+		String cmd = "find "+ source + " -type f -name *.txt";
 		System.out.println(cmd);
 		try {
 			Process process = Runtime.getRuntime().exec(cmd);
 			BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			String line = null;
-			while ((line = input.readLine()) != null) {	
+			while ((line = input.readLine()) != null) {
+				rsyncFile (line, target);//备份文件改名信息文件
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -756,8 +758,8 @@ public class BackupToDisk
 	public static int backupWorkFun(String backupFolder, String folderName, String targetFolder){
 		String sourceFolderSize = folderSize (backupFolder); // 获取目录所有文件总大小
 		my_mkdir(targetFolder+"/"+folderName); // 在备份硬盘创建目录
-		String sourcefile = backupFolder + "/" + folderName + "-All-File-Info.txt";
-		String targetfile = targetFolder+"/"+folderName + "/" + folderName + "-All-File-Info.txt";
+		String sourcefile = backupFolder + "/" + folderName + "-sourcefile-All-File-Info.txt";
+		String targetfile = targetFolder+"/"+folderName + "/" + folderName + "-backupfile-All-File-Info.txt";
 		newDataInfoFile(sourcefile);
 		newDataInfoFile(targetfile);
 
